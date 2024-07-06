@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Algorithm Visualizer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        #canvas {
+            border: 2px solid #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        button, input {
+            margin: 10px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4a90e2;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #357abd;
+        }
+        input[type="text"], input[type="number"] {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid #ffffff;
+            color: #ffffff;
+        }
+        #userInput {
+            width: 300px;
+        }
+        #iterationCount {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .footer a {
+            color: #ffffff;
+            text-decoration: none;
+            border-bottom: 1px dotted #ffffff;
+        }
+        .footer a:hover {
+            border-bottom: 1px solid #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Algorithm Visualizer</h1>
+        <canvas id="canvas" width="800" height="400"></canvas>
+        <br>
+        <input type="text" id="userInput" placeholder="Enter numbers separated by commas">
+        <button id="setArray">Set Array</button>
+        <input type="number" id="arraySize" min="2" max="100" value="50">
+        <button id="randomArray">Generate Random Array</button>
+        <br>
+        <button id="bubbleSort">Bubble Sort</button>
+        <button id="insertionSort">Insertion Sort</button>
+        <button id="quickSort">Quick Sort</button>
+        <button id="mergeSort">Merge Sort</button>
+        <button id="selectionSort">Selection Sort</button>
+        <button id="heapSort">Heap Sort</button>
+        <p id="iterationCount">Iterations: 0</p>
+    </div>
+
+    <div class="footer">
+        Created by <a href="https://github.com/Alwalid54321" target="_blank">Alwalid54321</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let array = [];
+        let iterations = 0;
+        let isSorting = false;
+
+        function initRandomArray(size) {
+            array = Array.from({length: size}, () => Math.floor(Math.random() * 380) + 20);
+            iterations = 0;
+            drawArray();
+        }
+
+        function setUserArray() {
+            const input = document.getElementById('userInput').value;
+            array = input.split(',').map(num => parseInt(num.trim())).filter(num => !isNaN(num));
+            if (array.length < 2) {
+                alert('Please enter at least 2 valid numbers');
+                return;
+            }
+            const max = Math.max(...array);
+            array = array.map(num => (num / max) * 380 + 20);
+            iterations = 0;
+            drawArray();
+        }
+
+        function drawArray() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const barWidth = canvas.width / array.length;
+            array.forEach((value, index) => {
+                const hue = (value - 20) / 380 * 240;
+                ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                ctx.fillRect(index * barWidth, canvas.height - value, barWidth - 1, value);
+            });
+            document.getElementById('iterationCount').textContent = `Iterations: ${iterations}`;
+        }
+
+        async function bubbleSort() {
+            for (let i = 0; i < array.length; i++) {
+                for (let j = 0; j < array.length - i - 1; j++) {
+                    if (array[j] > array[j + 1]) {
+                        [array[j], array[j + 1]] = [array[j + 1], array[j]];
+                        iterations++;
+                        drawArray();
+                        await new Promise(resolve => setTimeout(resolve, 10));
+                    }
+                    if (!isSorting) return;
+                }
+            }
+        }
+
+        async function insertionSort() {
+            for (let i = 1; i < array.length; i++) {
+                let key = array[i];
+                let j = i - 1;
+                while (j >= 0 && array[j] > key) {
+                    array[j + 1] = array[j];
+                    j--;
+                    iterations++;
+                    drawArray();
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    if (!isSorting) return;
+                }
+                array[j + 1] = key;
+            }
+        }
+
+        async function quickSort(low = 0, high = array.length - 1) {
+            if (low < high) {
+                let pi = await partition(low, high);
+                await quickSort(low, pi - 1);
+                await quickSort(pi + 1, high);
+            }
+        }
+
+        async function partition(low, high) {
+            let pivot = array[high];
+            let i = low - 1;
+            for (let j = low; j < high; j++) {
+                if (array[j] < pivot) {
+                    i++;
+                    [array[i], array[j]] = [array[j], array[i]];
+                    iterations++;
+                    drawArray();
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                }
+                if (!isSorting) return;
+            }
+            [array[i + 1], array[high]] = [array[high], array[i + 1]];
+            iterations++;
+            drawArray();
+            await new Promise(resolve => setTimeout(resolve, 10));
+            return i + 1;
+        }
+
+        async function mergeSort(start = 0, end = array.length - 1) {
+            if (start < end) {
+                const mid = Math.floor((start + end) / 2);
+                await mergeSort(start, mid);
+                await mergeSort(mid + 1, end);
+                await merge(start, mid, end);
+            }
+        }
+
+        async function merge(start, mid, end) {
+            const left = array.slice(start, mid + 1);
+            const right = array.slice(mid + 1, end + 1);
+            let i = 0, j = 0, k = start;
+
+            while (i < left.length && j < right.length) {
+                if (left[i] <= right[j]) {
+                    array[k] = left[i];
+                    i++;
+                } else {
+                    array[k] = right[j];
+                    j++;
+                }
+                k++;
+                iterations++;
+                drawArray();
+                await new Promise(resolve => setTimeout(resolve, 10));
+                if (!isSorting) return;
+            }
+
+            while (i < left.length) {
+                array[k] = left[i];
+                i++;
+                k++;
+                iterations++;
+                drawArray();
+                await new Promise(resolve => setTimeout(resolve, 10));
+                if (!isSorting) return;
+            }
+
+            while (j < right.length) {
+                array[k] = right[j];
+                j++;
+                k++;
+                iterations++;
+                drawArray();
+                await new Promise(resolve => setTimeout(resolve, 10));
+                if (!isSorting) return;
+            }
+        }
+
+        async function selectionSort() {
+            for (let i = 0; i < array.length - 1; i++) {
+                let minIndex = i;
+                for (let j = i + 1; j < array.length; j++) {
+                    if (array[j] < array[minIndex]) {
+                        minIndex = j;
+                    }
+                    iterations++;
+                }
+                if (minIndex !== i) {
+                    [array[i], array[minIndex]] = [array[minIndex], array[i]];
+                    drawArray();
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                }
+                if (!isSorting) return;
+            }
+        }
+
+        async function heapSort() {
+            // Build max heap
+            for (let i = Math.floor(array.length / 2) - 1; i >= 0; i--) {
+                await heapify(array.length, i);
+            }
+
+            // Extract elements from heap one by one
+            for (let i = array.length - 1; i > 0; i--) {
+                [array[0], array[i]] = [array[i], array[0]];
+                drawArray();
+                await new Promise(resolve => setTimeout(resolve, 10));
+                await heapify(i, 0);
+                if (!isSorting) return;
+            }
+        }
+
+        async function heapify(n, i) {
+            let largest = i;
+            const left = 2 * i + 1;
+            const right = 2 * i + 2;
+
+            if (left < n && array[left] > array[largest]) {
+                largest = left;
+            }
+
+            if (right < n && array[right] > array[largest]) {
+                largest = right;
+            }
+
+            if (largest !== i) {
+                [array[i], array[largest]] = [array[largest], array[i]];
+                iterations++;
+                drawArray();
+                await new Promise(resolve => setTimeout(resolve, 10));
+                await heapify(n, largest);
+            }
+        }
+
+        function startSorting(sortFunction) {
+            if (!isSorting && array.length > 0) {
+                isSorting = true;
+                iterations = 0;
+                sortFunction().then(() => {
+                    isSorting = false;
+                });
+            }
+        }
+
+        document.getElementById('setArray').addEventListener('click', setUserArray);
+        document.getElementById('randomArray').addEventListener('click', () => {
+            const size = parseInt(document.getElementById('arraySize').value);
+            if (size >= 2 && size <= 100) {
+                initRandomArray(size);
+            } else {
+                alert('Please enter a valid array size between 2 and 100');
+            }
+        });
+
+        document.getElementById('bubbleSort').addEventListener('click', () => startSorting(bubbleSort));
+        document.getElementById('insertionSort').addEventListener('click', () => startSorting(insertionSort));
+        document.getElementById('quickSort').addEventListener('click', () => startSorting(quickSort));
+        document.getElementById('mergeSort').addEventListener('click', () => startSorting(mergeSort));
+        document.getElementById('selectionSort').addEventListener('click', () => startSorting(selectionSort));
+        document.getElementById('heapSort').addEventListener('click', () => startSorting(heapSort));
+
+        initRandomArray(50);
+    </script>
+</body>
+</html>
